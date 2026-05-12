@@ -30,30 +30,29 @@ console.log("Frontend URL:", process.env.FRONTEND_URL || "not set");
 
 app.use(express.json({ limit: "2mb" }));
 
-app.use(
-  cors({
-    origin(origin, callback) {
-      // Allow requests with no origin like Postman, curl, server-to-server
-      if (!origin) {
-        return callback(null, true);
-      }
+const corsOptions = {
+  origin(origin, callback) {
+    // Allow requests with no origin like Postman, curl, server-to-server
+    if (!origin) {
+      return callback(null, true);
+    }
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
 
-      console.log("Blocked by CORS:", origin);
+    console.log("Blocked by CORS:", origin);
+    return callback(new Error(`CORS blocked origin: ${origin}`));
+  },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
 
-      return callback(new Error(`CORS blocked origin: ${origin}`));
-    },
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
+app.use(cors(corsOptions));
 
 // Express 5 safe OPTIONS handler
-app.options(/.*/, cors());
+app.options(/.*/, cors(corsOptions));
 
 app.use(requestIp.mw());
 
