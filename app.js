@@ -8,6 +8,7 @@ require("dotenv").config();
 const app = express();
 
 const PORT_NO = process.env.PORT || 3030;
+
 const MONGO_CONNECT =
   process.env.MONGO_URI || "mongodb://127.0.0.1:27017/smvd1";
 
@@ -32,20 +33,27 @@ app.use(express.json({ limit: "2mb" }));
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Allow requests with no origin like Postman, curl, server-to-server
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
       console.log("Blocked by CORS:", origin);
+
       return callback(new Error(`CORS blocked origin: ${origin}`));
     },
-    methods: ["GET", "POST", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
 
-app.options("*", cors());
+// Express 5 safe OPTIONS handler
+app.options(/.*/, cors());
 
 app.use(requestIp.mw());
 
@@ -75,6 +83,13 @@ app.use(async (req, res, next) => {
     console.log("User middleware error:", err.message);
     next();
   }
+});
+
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "success",
+    message: "Backend is running",
+  });
 });
 
 app.use(publicRoutes);
