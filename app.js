@@ -31,6 +31,7 @@ app.use(
         return callback(null, true);
       }
 
+      console.log("Blocked by CORS:", origin);
       return callback(new Error(`CORS blocked origin: ${origin}`));
     },
     methods: ["GET", "POST", "OPTIONS"],
@@ -95,10 +96,13 @@ app.use((err, req, res, next) => {
 mongoose
   .connect(MONGO_CONNECT)
   .then(() => {
-    app.listen(PORT_NO, () => {
+    console.log("MongoDB connected successfully");
+
+    app.listen(PORT_NO, "0.0.0.0", () => {
       console.log(`Server Running On ${PORT_NO}`);
     });
   })
   .catch((err) => {
-    console.log("MongoDB connection error:", err.message);
+    console.error("MongoDB connection error:", err.message);
+    process.exit(1);
   });
