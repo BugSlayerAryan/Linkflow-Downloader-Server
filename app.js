@@ -22,6 +22,11 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
+console.log("Starting backend...");
+console.log("PORT:", PORT_NO);
+console.log("Mongo URI exists:", Boolean(process.env.MONGO_URI));
+console.log("Frontend URL:", process.env.FRONTEND_URL || "not set");
+
 app.use(express.json({ limit: "2mb" }));
 
 app.use(
@@ -46,21 +51,22 @@ app.use(requestIp.mw());
 
 app.use(async (req, res, next) => {
   try {
+    if (!req.clientIp) {
+      return next();
+    }
+
     let user = await User.findOne({ ip: req.clientIp });
 
     if (!user) {
-      const useragent = req.headers["user-agent"];
+      const useragent = req.headers["user-agent"] || "";
       const parser = new UAParser(useragent);
       const parserResults = parser.getResult();
 
-      const newUser = new User({
+      user = await User.create({
         ip: req.clientIp,
         deviceInfo: parserResults,
         activity: [],
       });
-
-      await newUser.save();
-      user = await User.findOne({ ip: req.clientIp });
     }
 
     req.users = user;
@@ -72,6 +78,13 @@ app.use(async (req, res, next) => {
 });
 
 app.use(publicRoutes);
+
+app.use((req, res) => {
+  res.status(404).json({
+    status: "fail",
+    error: "Route not found",
+  });
+});
 
 app.use((err, req, res, next) => {
   console.log("Global error:", err.message);
@@ -94,7 +107,9 @@ app.use((err, req, res, next) => {
 });
 
 mongoose
-  .connect(MONGO_CONNECT)
+  .connect(MONGO_CONNECT, {
+    serverSelectionTimeoutMS: 15000,
+  })
   .then(() => {
     console.log("MongoDB connected successfully");
 
@@ -104,5 +119,10 @@ mongoose
   })
   .catch((err) => {
     console.error("MongoDB connection error:", err.message);
+
+    if (err.reason) {
+      console.error("MongoDB error reason:", err.reason);
+    }
+
     process.exit(1);
   });
