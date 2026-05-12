@@ -1206,12 +1206,16 @@ const fs = require("fs");
 const FFMPEG_PATH = process.env.FFMPEG_PATH || "ffmpeg";
 const YTDLP_PATH = process.env.YTDLP_PATH || "yt-dlp";
 
-const COOKIE_CONTENT = process.env.COOKIE_CONTENT || "";
+const COOKIE_CONTENT_BASE64 = process.env.COOKIE_CONTENT_BASE64 || "";
 const COOKIES_PATH =
   process.env.COOKIES_PATH || path.join(__dirname, "..", "cookies.txt");
 
-if (COOKIE_CONTENT && !fs.existsSync(COOKIES_PATH)) {
-  fs.writeFileSync(COOKIES_PATH, COOKIE_CONTENT, "utf8");
+if (COOKIE_CONTENT_BASE64) {
+  fs.writeFileSync(
+    COOKIES_PATH,
+    Buffer.from(COOKIE_CONTENT_BASE64, "base64").toString("utf8"),
+    "utf8"
+  );
 }
 
 const addCookiesArgs = (args = []) => {
@@ -1221,6 +1225,9 @@ const addCookiesArgs = (args = []) => {
 
   return args;
 };
+
+console.log("Cookie base64 exists:", Boolean(process.env.COOKIE_CONTENT_BASE64));
+console.log("Cookies file exists:", fs.existsSync(COOKIES_PATH));
 
 exports.startApi = (req, res) => {
   res.status(200).json({ message: "Welcome To Vidown Api" });
