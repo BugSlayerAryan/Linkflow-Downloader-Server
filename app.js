@@ -84,6 +84,7 @@ app.use(async (req, res, next) => {
   }
 });
 
+// Health check route
 app.get("/", (req, res) => {
   res.status(200).json({
     status: "success",
@@ -91,12 +92,14 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use(publicRoutes);
+// Main API routes
+app.use("/api/v1", publicRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
     status: "fail",
     error: "Route not found",
+    path: req.originalUrl,
   });
 });
 
