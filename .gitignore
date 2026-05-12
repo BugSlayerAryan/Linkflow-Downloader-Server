@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables / secrets
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Downloaded/generated files
+downloads/
+*.mp4
+*.mp3
+*.m4a
+*.webm
+*.part
+*.tmp
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+
+# Build / cache
+dist/
+build/
+.cache/
